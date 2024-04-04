@@ -1140,7 +1140,7 @@ void mlir::torch::onnx_c::populateDefaultDomainGtoP(
             cstKernel.push_back(rewriter.create<Torch::ConstantIntOp>(
                 binder.getLoc(), rewriter.getI64IntegerAttr(kernelSize)));
           }
-          cstPadding.push_back(cstZero);
+          cstPadding.append({cstZero, cstZero});
           cstStrides.push_back(cstOne);
         }
         Value kernelSizeList = rewriter.create<Torch::PrimListConstructOp>(

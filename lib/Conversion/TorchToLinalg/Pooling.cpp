@@ -114,8 +114,14 @@ static Value padInputTensor(Operation *op, ConversionPatternRewriter &rewriter,
                             SmallVectorImpl<int64_t> &paddingInts,
                             Value initValue) {
   SmallVector<int64_t> lowPaddingIncludingNC = {0, 0};
-  lowPaddingIncludingNC.append(paddingInts);
-  SmallVector<int64_t> highPaddingIncludingNC = lowPaddingIncludingNC;
+  SmallVector<int64_t> highPaddingIncludingNC = {0, 0};
+
+  // paddingInts is a list of 2 * dimensionality elements, where the ordering
+  // is [padding_dim1_low, padding_dim2_low, ..., padding_dim1_high, padding_dim2_high, ...]
+  for (int64_t i = 0; i < dimensionality; ++i) {
+    lowPaddingIncludingNC.push_back(paddingInts[i]);
+    highPaddingIncludingNC.push_back(paddingInts[2*i+1]);
+  }
 
   if (ceilMode) {
     for (int64_t i = 0; i < dimensionality; ++i) {
@@ -545,7 +551,8 @@ public:
 
     bool ceilMode;
     SmallVector<Value, Dim> kernelSizeIntValues;
-    SmallVector<int64_t, Dim> strideInts, paddingInts, dilationInts(Dim, 1);
+    SmallVector<int64_t, Dim> strideInts, dilationInts(Dim, 1);
+    SmallVector<int64_t, Dim*2> paddingInts;
     if (failed(checkAndGetPoolingParameters<OpTy>(op, rewriter, typeConverter,
                                                   ceilMode, kernelSizeIntValues,
                                                   strideInts, paddingInts)))
